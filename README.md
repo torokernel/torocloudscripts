@@ -148,11 +148,6 @@ mount -t ceph vmm101:6789:/ /home/debian/cephfs -o name=vmmcephuser,secret=xxxxx
 ```
 For unmount, run `umount ./cephfs`.
 
-To automate these steps, use the script `scripts/deploy_client.sh`:
-```bash
-cp ./scripts/deploy_client.sh ~/deploy_client.sh
-chmod +x deploy_client.sh
-./deploy_client.sh
-```
+To automate these steps, execute the script `deploy_client.sh` at `~/`.
 
 ### Step 8. Add new OSD node 
