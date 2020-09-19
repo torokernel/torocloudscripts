@@ -1,6 +1,6 @@
 # Deploying a 3-node Ceph Cluster
 ## Introduction
-This tutorial explains how to set up a 3-nodes Ceph cluster. We also explain how to configure clients to access the Cephfs. The distributed fs is used by clients to share binaries and files among VMs. These VMs are Toro's guests. We uses the cloud provider pepito wit the following OS: Debian 4.19.37-5+deb10u1 (2019-07-19) 
+This tutorial explains how to set up a 3-nodes Ceph cluster. We also explain how to configure clients to access the Cephfs. The distributed fs is used by clients to share binaries and files among VMs. These VMs are Toro's guests. We uses the cloud provider OVH with nodes Debian 4.19.37-5+deb10u1 (2019-07-19). At the end of some sections, you will find link to an script that automate the step. 
 
 ## Nodes
 
@@ -31,10 +31,10 @@ ifup eth1
 #### Configure Host File 
 Configure hosts so each node is visible by using shortnames. Edit */etc/hosts* and add:
 ```bash
-10.2.0.75       vmm104.xmlrad.org       vmm104
 10.2.2.127      vmm101.xmlrad.org       vmm101
 10.2.2.33       vmm102.xmlrad.org       vmm102
 10.2.0.31       vmm103.xmlrad.org       vmm103
+10.2.0.75       vmm104.xmlrad.org       vmm104
 10.2.0.171      vmm105.xmlrad.org       vmm105
 ```
 #### Packages for Monitor
@@ -108,14 +108,12 @@ ceph orch daemon add osd vmm101:/dev/sdb
 Since monitors are light-weight, it is possible to run them on the same host as an OSD. We add an OSD in the monitor.
 
 ### Step 5. Create CephFS Filesystem
-To create the filesystem, use the interface fs volume which creates the pools and msd service automatically. In this case, the name if the fs is **vmmcephfs**. Optionally, the placement can be passed as a parameter:
+To create the filesystem, use the interface fs volume which creates the pools and msd service automatically. In this case, the name of the fs is **vmmcephfs** and the user is **vmmcephuser**. The second command returns the secret key that must be used by clients. Please store it for later
 
 ```bash
 ceph fs volume create vmmcephfs
 ceph fs authorize vmmcephfs client.vmmcephsuser / rw
 ```
-The last command returns the secret key for the new user **vmmcephuser** that should be used to add clients. Please store it for later.
-
 ### Step 6. Prepare and Mount CephFS in clients
 In this step, we first prepare the client by installing all the necessary packages and then we mount the CephFS. These steps must be followed for every new client. First, you need docker and ceph-common:
 
@@ -154,6 +152,8 @@ mount -t ceph vmm101:6789:/ /home/debian/cephfs -o name=vmmcephuser,secret=xxxxx
 ```
 For unmount, run `umount ./cephfs`.
 
-To automate these steps, execute`scripts/deploy_client.sh` at `~/`.
+To automate this step, execute `scripts/deploy_client.sh` at `~/`.
 
 ### Step 8. Add new OSD node 
+
+To add new OSD node, you have just to repeat the steps 1, then step 3 and step 4.
