@@ -1,5 +1,19 @@
-# Creating a 3-node CEPH Cluster
+# Deploying a 3-node Ceph Cluster
+## Introduction
+In this tutorial, we explain how to deploy a Cephs cluster and how to set up the client to access the cluster and how to install all the tools to launch Toro VMs in some nodes. 
+
+TODO: ssh keys distributions
+
+TODO: There are 3 major kind of scripts :
+
+\- setup the initial cluster with 3 nodes (or any number of nodes, the guy will simply copy/paste inside the script)
+
+\- setup of an additional node
+
+\- setup of a compute node in case the sysadmin decide not to run as hyperconverged but too split storage and compute nodes.
+
 ## Nodes
+
 * vmm101, 51.75.15.149, 10.2.2.127, mon, osd
 * vmm102, 51.83.109.111, 10.2.2.33, OSD
 * vmm103, 51.178.95.20, 10.2.0.31, OSD
@@ -49,13 +63,17 @@ We are going to configure the hosts so each node is visible by using shornames.
 * `sudo apt install docker-ce -y`
 
 #### Install LVM2 (only for OSDs)
-* `sudo apt-get install lvm2 -y`
+```bash
+apt-get install lvm2 -y
+```
 
-#### Install  Ceph-common (only for Clients to install the kernel drivers)
-* `curl --silent --remote-name --location https://github.com/ceph/ceph/raw/octopus/src/cephadm/cephadm`
-* `chmod +x cephadm`
-* `sudo ./cephadm add-repo --release octopus`
-* `sudo ./cephadm install ceph-common`
+#### Install  Ceph-common (only for Clients and OSD to install the kernel drivers)
+```bash
+curl --silent --remote-name --location https://github.com/ceph/ceph/raw/octopus/src/cephadm/cephadm
+chmod +x cephadm
+./cephadm add-repo --release octopus`
+./cephadm install ceph-common`
+```
 
 #### Install Ceph (only for Monitor Node)
 * `curl --silent --remote-name --location https://github.com/ceph/ceph/raw/octopus/src/cephadm/cephadm`
@@ -73,7 +91,7 @@ In this step, you can avoid ssh-user and allow overwrite
 Since monitors are light-weight, it is possible to run them on the same host as an OSD;
 
 ### Step 3. Add hosts to the cluster
-For this step, I copy the public key from /etc/ceph/ceph.pub and I pasted into /root/.ssh/authorized_keys. 
+For this step, I copy the public key from `/etc/ceph/ceph.pub` and I pasted into `/root/.ssh/authorized_keys`. 
 
 * `ceph orch host add vmm102`
 * `ceph orch host add vmm103`
@@ -107,21 +125,29 @@ The automatic use of the conf files did not work for mount.
 
 `umount ./cephfs`
 
-### Step 7. Install QEMU in Clients
-We need latest QEMU (+5.1) which has support for microvm, virtiofs and vsocket. First, we need to install the following libraries:
+### Step 7. Compile latest QEMU in Clients
+We are going to compile  latest QEMU (+5.1)  with support for for microvm, virtiofs and vsocket. First, we need to install the following libraries:
 
-`apt-get install libcap-dev libcap-ng-dev libcurl4-gnutls-dev libgtk-3-dev libglib2.0-dev libpixman-1-dev libseccomp-dev -y`
-
+```bash
+apt-get install libcap-dev libcap-ng-dev libcurl4-gnutls-dev libgtk-3-dev libglib2.0-dev libpixman-1-dev libseccomp-dev -y
+```
 Then, clone and compile QEMU:
-
-`git clone https://github.com/qemu/qemu.git qemuforvmm`
-`cd qemuforvmm`
-`mkdir build` 
-`cd build`
-`../configure --target-list=x86_64-softmmu`
-`make`
-
+```bash
+git clone https://github.com/qemu/qemu.git qemuforvmm`
+cd qemuforvmm
+mkdir build 
+cd build
+# TODO: reduce the size of qemu
+../configure --target-list=x86_64-softmmu
+make
+```
 You can find **virtiofsd** at `~/qemuforvmm/build/tools/virtiofsd`.
+Finally, load **vsock** module:
 
-Finally, load vsock module:
-`sudo modprobe vhost_vsock`
+```bash
+modprobe vhost_vsock
+```
+You can use the script `scripts/install_qemu.sh` by calling it:
+```bash
+./scripts/install_qemu.sh ~/qemuforvmm
+```
