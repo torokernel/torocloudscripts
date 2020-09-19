@@ -55,19 +55,20 @@ We are going to configure the hosts so each node is visible by using shornames.
   `10.2.0.171      vmm105.xmlrad.org       vmm105`
 
 #### Install Docker (for everyone)
-* `sudo apt-get update`
-* `sudo apt install apt-transport-https ca-certificates curl gnupg2 software-properties-common -y`
-* `curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -`
-* `sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"`
-* `sudo apt update`
-* `sudo apt install docker-ce -y`
-
+```bash
+apt-get update
+apt install apt-transport-https ca-certificates curl gnupg2 software-properties-common -y
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
+add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
+apt update
+apt install docker-ce -y
+```
 #### Install LVM2 (only for OSDs)
 ```bash
 apt-get install lvm2 -y
 ```
 
-#### Install  Ceph-common (only for Clients and OSD to install the kernel drivers)
+#### Install  Ceph-common (only for Clients and OSDs to install the kernel drivers)
 ```bash
 curl --silent --remote-name --location https://github.com/ceph/ceph/raw/octopus/src/cephadm/cephadm
 chmod +x cephadm
@@ -98,12 +99,13 @@ For this step, I copy the public key from `/etc/ceph/ceph.pub` and I pasted into
 * `ceph orch device zap vmm103 /dev/sdb --force` en el caso que alla particiones llenas `ceph orch device ls`
 
  ### Step 4. Add OSDs nodes
-* `sudo ceph orch daemon add osd vmm102:/dev/sdb`
+These commands are executed in MON:
 
-* `sudo ceph orch daemon add osd vmm103:/dev/sdb`
-
-* `sudo ceph orch daemon add osd vmm101:/dev/sdb`
-
+```bash
+ceph orch daemon add osd vmm102:/dev/sdb
+ceph orch daemon add osd vmm103:/dev/sdb
+ceph orch daemon add osd vmm101:/dev/sdb
+ ```
 Since monitors are light-weight, it is possible to run them on the same host as an OSD. We add an OSD in the monitor.
 
 ### Step 5. Create CephFS Filesystem
@@ -116,11 +118,10 @@ store the key to use it later.
 
 ### Step 6. Mount FS in Clients
 In the client execute the following to create a directory that can be accesed from anyone:
-
-`mkdir –-mode=777 ~/cephfs`
-
-`sudo mount -t ceph vmm101:6789:/ /home/debian/cephfs -o name=vmmcephuser,secret=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
-
+```bash
+mkdir –-mode=777 ~/cephfs
+mount -t ceph vmm101:6789:/ /home/debian/cephfs -o name=vmmcephuser,secret=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
 The automatic use of the conf files did not work for mount.
 
 `umount ./cephfs`
@@ -147,7 +148,7 @@ Finally, load **vsock** module:
 ```bash
 modprobe vhost_vsock
 ```
-To automate these steos, use the script `scripts/install_qemu.sh` by passing as parameter the directory in which you want to clone qemu. The script must be executed ar `~/`:
+To automate these steps, use the script `scripts/install_qemu.sh` by passing as parameter the directory in which you want to clone qemu. The script must be executed at `~/`:
 ```bash
 ./scripts/install_qemu.sh ~/qemuforvmm
 ```
