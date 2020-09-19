@@ -150,7 +150,9 @@ For unmount, run `umount ./cephfs`.
 
 To automate these steps, use the script `scripts/deploy_client.sh`:
 ```bash
-./scripts/deploy_client.sh
+cp ./scripts/deploy_client.sh ~/deploy_client.sh
+chmod +x deploy_client.sh
+./deploy_client.sh
 ```
 
 ### Step 8. Add new OSD node 
