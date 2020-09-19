@@ -125,7 +125,7 @@ The automatic use of the conf files did not work for mount.
 
 `umount ./cephfs`
 
-### Step 7. Compile latest QEMU in Clients
+### Step 7. Compile latest QEMU in Clients and enable VSock
 We are going to compile  latest QEMU (+5.1)  with support for for microvm, virtiofs and vsocket. First, we need to install the following libraries:
 
 ```bash
@@ -147,7 +147,7 @@ Finally, load **vsock** module:
 ```bash
 modprobe vhost_vsock
 ```
-You can use the script `scripts/install_qemu.sh` by calling it:
+To automate these steos, use the script `scripts/install_qemu.sh` by passing as parameter the directory in which you want to clone qemu. The script must be executed ar `~/`:
 ```bash
 ./scripts/install_qemu.sh ~/qemuforvmm
 ```
