@@ -2,16 +2,6 @@
 ## Introduction
 In this tutorial, we explain how to deploy a Cephs cluster and how to set up the client to access the cluster and how to install all the tools to launch Toro VMs in some nodes. 
 
-TODO: ssh keys distributions
-
-TODO: There are 3 major kind of scripts :
-
-\- setup the initial cluster with 3 nodes (or any number of nodes, the guy will simply copy/paste inside the script)
-
-\- setup of an additional node
-
-\- setup of a compute node in case the sysadmin decide not to run as hyperconverged but too split storage and compute nodes.
-
 ## Nodes
 
 * vmm101, 51.75.15.149, 10.2.2.127, mon, osd
@@ -83,10 +73,10 @@ chmod +x cephadm
 ### Step 2. Create Monitor Node
 In the monitor node, execute:
 ```bash
-mkdir -p /etc/ceph`
+mkdir -p /etc/ceph
 ./cephadm bootstrap --mon-ip $MONIP --ssh-user debian --allow-overwrite
 ```
-Replace $MONIP with the internal ip of the monitor node, e.g., 10.2.2.127.
+Replace $MONIP with the internal ip of the monitor node, e.g., 10.2.2.127. Also, replace debian with a root user. 
 
 ### Step 3. Add hosts to the cluster
 We are going to add the OSD nodes to the cluster. Before doing this, copy  the public key `/etc/ceph/ceph.pub` into `/root/.ssh/authorized_keys` of OSD nodes. Then, add the nodes from the monitor node:
@@ -98,8 +88,11 @@ ceph orch host add vmm103
 ceph orch device zap vmm103 /dev/sdb --force
 ```
 
+**NOTE** In this step, I have to use the root user instead of **debian**. The reason is that root is hardcoded and I could not changed. This has been fixed in Ceph but it is not upstream yet. I have to modify this step when it hits upstream.  
+
  ### Step 4. Add OSDs nodes
-We add the block that will belong to the cluster. In this case, we use the `/dev/sdb` disk of each OSD node:
+
+Add the block devices that will belong to the cluster. In this case, we use the `/dev/sdb` disk of each OSD node:
 
 ```bash
 ceph orch daemon add osd vmm102:/dev/sdb
@@ -117,7 +110,7 @@ ceph fs authorize vmmcephfs client.vmmcephsuser / rw
 ```
 The last command returns the secret key for the new user **vmmcephuser** that should be used to add clients. Please store it for later.
 
-### Step 6. Mount CephFS in Clients
+### Step 6. Prepare and Mount CephFS in clients
 In this step, we first prepare the client by installing all the necessary packages and then we mount the CephFS. These steps must be followed for every new client. First, you need docker and ceph-common:
 
 ```bash
@@ -160,3 +153,4 @@ To automate these steps, use the script `scripts/deploy_client.sh`:
 ./scripts/deploy_client.sh
 ```
 
+### Step 8. Add new OSD node 
