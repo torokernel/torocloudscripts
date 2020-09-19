@@ -71,8 +71,8 @@ apt-get install lvm2 -y
 ```bash
 curl --silent --remote-name --location https://github.com/ceph/ceph/raw/octopus/src/cephadm/cephadm
 chmod +x cephadm
-./cephadm add-repo --release octopus`
-./cephadm install ceph-common`
+./cephadm add-repo --release octopus
+./cephadm install ceph-common
 ```
 
 #### Install Ceph (only for Monitor Node)
@@ -133,7 +133,7 @@ apt-get install libcap-dev libcap-ng-dev libcurl4-gnutls-dev libgtk-3-dev libgli
 ```
 Then, clone and compile QEMU:
 ```bash
-git clone https://github.com/qemu/qemu.git qemuforvmm`
+git clone https://github.com/qemu/qemu.git qemuforvmm
 cd qemuforvmm
 mkdir build 
 cd build
