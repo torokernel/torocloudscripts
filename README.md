@@ -24,37 +24,32 @@ TODO: There are 3 major kind of scripts :
 - The operating system is Debian 4.19.37-5+deb10u1 (2019-07-19) 
 
 ## Setup
-### Step 1. Configure all nodes
-The following steps must be done for each node:
-
-We are going to use the **debian** user that has root access. 
+### Step 1. Prepare all nodes
+We are going to configure LAN and the host names and install all the needed packages. We are going to use the **debian** user for root access. 
 
 #### Configure LAN IP
-1. Edit */etc/network/interfaces* and add:
-`iface eth1 inet static`
-`address 10.2.2.127`
-`netmask 255.255.0.0`
-`gateway 10.2.2.254`
-2. Then, execute:
-`sudo ifdown eth1`
-`sudo ifup eth1`
+Set node private IP, netmask and gateway by editing */etc/network/interfaces* (eth1):
 
-3. Check the ip by doing:
-`ip addr show`
-
-Change the address and the gateway depending on the host.
-
+```bash
+iface eth1 inet static
+address 10.2.2.127
+netmask 255.255.0.0
+gateway 10.2.2.254
+ifdown eth1
+ifup eth1
+```
 #### Configure Host File 
-We are going to configure the hosts so each node is visible by using shornames. 
-1. Edit */etc/hosts* and add:
+Configure hosts so each node is visible by using shortnames. Edit */etc/hosts* and add:
+```bash
+10.2.0.75       vmm104.xmlrad.org       vmm104
+10.2.2.127      vmm101.xmlrad.org       vmm101
+10.2.2.33       vmm102.xmlrad.org       vmm102
+10.2.0.31       vmm103.xmlrad.org       vmm103
+10.2.0.171      vmm105.xmlrad.org       vmm105
+```
+#### Packages for Monitor
+For monitors node, you need docker, LVM2 and Ceph:
 
-  `10.2.0.75       vmm104.xmlrad.org       vmm104`
-  `10.2.2.127      vmm101.xmlrad.org       vmm101`
-  `10.2.2.33       vmm102.xmlrad.org       vmm102`
-  `10.2.0.31       vmm103.xmlrad.org       vmm103`
-  `10.2.0.171      vmm105.xmlrad.org       vmm105`
-
-#### Install Docker (for everyone)
 ```bash
 apt-get update
 apt install apt-transport-https ca-certificates curl gnupg2 software-properties-common -y
@@ -62,78 +57,84 @@ curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
 add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
 apt update
 apt install docker-ce -y
-```
-#### Install LVM2 (only for OSDs)
-```bash
 apt-get install lvm2 -y
+curl --silent --remote-name --location https://github.com/ceph/ceph/raw/octopus/src/cephadm/cephadm`
+chmod +x cephadm`
+wget -q -O- 'https://download.ceph.com/keys/release.asc' | sudo apt-key add -
+echo deb https://download.ceph.com/debian-octopus/ $(lsb_release -sc) main | sudo tee /etc/apt/sources.list.d/ceph.list
+apt-get update
+./cephadm install cephadm ceph-common
 ```
-
-#### Install  Ceph-common (only for Clients and OSDs to install the kernel drivers)
+#### Packages for OSDs
+For OSDs, you need docker, LVM2 and Ceph-common:
 ```bash
+apt-get update
+apt install apt-transport-https ca-certificates curl gnupg2 software-properties-common -y
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
+add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
+apt update
+apt install docker-ce -y
+apt-get install lvm2 -y
 curl --silent --remote-name --location https://github.com/ceph/ceph/raw/octopus/src/cephadm/cephadm
 chmod +x cephadm
 ./cephadm add-repo --release octopus
 ./cephadm install ceph-common
 ```
-
-#### Install Ceph (only for Monitor Node)
-* `curl --silent --remote-name --location https://github.com/ceph/ceph/raw/octopus/src/cephadm/cephadm`
-* `chmod +x cephadm`
-* `wget -q -O- 'https://download.ceph.com/keys/release.asc' | sudo apt-key add -`
-* `echo deb https://download.ceph.com/debian-octopus/ $(lsb_release -sc) main | sudo tee /etc/apt/sources.list.d/ceph.list`
-* `sudo apt-get update`
-* `sudo ./cephadm install cephadm ceph-common`
-
 ### Step 2. Create Monitor Node
-* `sudo mkdir -p /etc/ceph`
-* `sudo ./cephadm bootstrap --mon-ip 10.2.2.127 --ssh-user debian --allow-overwrite`
-
-In this step, you can avoid ssh-user and allow overwrite
-Since monitors are light-weight, it is possible to run them on the same host as an OSD;
+In the monitor node, execute:
+```bash
+mkdir -p /etc/ceph`
+./cephadm bootstrap --mon-ip $MONIP --ssh-user debian --allow-overwrite
+```
+Replace $MONIP with the internal ip of the monitor node, e.g., 10.2.2.127.
 
 ### Step 3. Add hosts to the cluster
-For this step, I copy the public key from `/etc/ceph/ceph.pub` and I pasted into `/root/.ssh/authorized_keys`. 
+We are going to add the OSD nodes to the cluster. Before doing this, copy  the public key `/etc/ceph/ceph.pub` into `/root/.ssh/authorized_keys` of OSD nodes. Then, add the nodes from the monitor node:
 
-* `ceph orch host add vmm102`
-* `ceph orch host add vmm103`
-* `ceph orch device zap vmm103 /dev/sdb --force` en el caso que alla particiones llenas `ceph orch device ls`
+```bash
+ceph orch host add vmm102
+ceph orch host add vmm103
+# following command is optional and it clean a used partition
+ceph orch device zap vmm103 /dev/sdb --force
+```
 
  ### Step 4. Add OSDs nodes
-These commands are executed in MON:
+We add the block that will belong to the cluster. In this case, we use the `/dev/sdb` disk of each OSD node:
 
 ```bash
 ceph orch daemon add osd vmm102:/dev/sdb
 ceph orch daemon add osd vmm103:/dev/sdb
 ceph orch daemon add osd vmm101:/dev/sdb
- ```
+```
 Since monitors are light-weight, it is possible to run them on the same host as an OSD. We add an OSD in the monitor.
 
 ### Step 5. Create CephFS Filesystem
-To create the filesystem, uses the interface fs volume which creates the pools and msd service automatically. Optionally, the placement can be passed as a parameter. 
+To create the filesystem, use the interface fs volume which creates the pools and msd service automatically. In this case, the name if the fs is **vmmcephfs**. Optionally, the placement can be passed as a parameter:
 
-* `sudo ceph fs volume create vmmcephfs`
-* Get the secret key by executing: 
-`sudo ceph fs authorize vmmcephfs client.vmmcephsuser / rw`
-store the key to use it later. 
-
-### Step 6. Mount FS in Clients
-In the client execute the following to create a directory that can be accesed from anyone:
 ```bash
-mkdir –-mode=777 ~/cephfs
-mount -t ceph vmm101:6789:/ /home/debian/cephfs -o name=vmmcephuser,secret=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+ceph fs volume create vmmcephfs
+ceph fs authorize vmmcephfs client.vmmcephsuser / rw
 ```
-The automatic use of the conf files did not work for mount.
+The last command returns the secret key for the new user **vmmcephuser** that should be used to add clients. Please store it for later.
 
-`umount ./cephfs`
+### Step 6. Mount CephFS in Clients
+In this step, we first prepare the client by installing all the necessary packages and then we mount the CephFS. These steps must be followed for every new client. First, you need docker and ceph-common:
 
-### Step 7. Compile latest QEMU in Clients and enable VSock
-We are going to compile  latest QEMU (+5.1)  with support for for microvm, virtiofs and vsocket. First, we need to install the following libraries:
-
+```bash
+apt-get update
+apt install apt-transport-https ca-certificates curl gnupg2 software-properties-common -y
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
+add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
+apt update
+apt install docker-ce -y
+curl --silent --remote-name --location https://github.com/ceph/ceph/raw/octopus/src/cephadm/cephadm
+chmod +x cephadm
+./cephadm add-repo --release octopus
+./cephadm install ceph-common
+```
+We are going to compile  latest QEMU (+5.1)  with support for for microvm, virtiofs and vsocket:
 ```bash
 apt-get install libcap-dev libcap-ng-dev libcurl4-gnutls-dev libgtk-3-dev libglib2.0-dev libpixman-1-dev libseccomp-dev -y
-```
-Then, clone and compile QEMU:
-```bash
 git clone https://github.com/qemu/qemu.git qemuforvmm
 cd qemuforvmm
 mkdir build 
@@ -142,13 +143,20 @@ cd build
 ../configure --target-list=x86_64-softmmu
 make
 ```
-You can find **virtiofsd** at `~/qemuforvmm/build/tools/virtiofsd`.
-Finally, load **vsock** module:
+You can find **virtiofsd** at `~/qemuforvmm/build/tools/virtiofsd`. Finally, load **vsock** module:
 
 ```bash
 modprobe vhost_vsock
 ```
-To automate these steps, use the script `scripts/install_qemu.sh` by passing as parameter the directory in which you want to clone qemu. The script must be executed at `~/`:
+Mount the Cephfs at `/home/debian/cephfs`:
 ```bash
-./scripts/install_qemu.sh ~/qemuforvmm
+mkdir –-mode=777 ~/cephfs
+mount -t ceph vmm101:6789:/ /home/debian/cephfs -o name=vmmcephuser,secret=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
+For unmount, run `umount ./cephfs`.
+
+To automate these steps, use the script `scripts/deploy_client.sh`:
+```bash
+./scripts/deploy_client.sh
+```
+
