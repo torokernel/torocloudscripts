@@ -1,18 +1,18 @@
 # Deploying a 3-node Ceph Cluster
 ## Introduction
-In this tutorial, we explain how to deploy a Cephs cluster and how to set up the client to access the cluster and how to install all the tools to launch Toro VMs in some nodes. 
+This tutorial explains how to set up a 3-nodes Ceph cluster. We also explain how to configure clients to access the Cephfs. The distributed fs is used by clients to share binaries and files among VMs. These VMs are Toro's guests. We uses the cloud provider pepito wit the following OS: Debian 4.19.37-5+deb10u1 (2019-07-19) 
 
 ## Nodes
 
-* vmm101, 51.75.15.149, 10.2.2.127, mon, osd
-* vmm102, 51.83.109.111, 10.2.2.33, OSD
-* vmm103, 51.178.95.20, 10.2.0.31, OSD
-* vmm104, 51.210.189.212, 10.2.0.75 , client
-* vmm105, 51.210.186.20, 10.2.0.171, client
+The cluster is organized as 1 monitor, 3 OSD nodes and 2 clients. Each OSD node has a `sdb` partition of 10Gb which is part of the cluster. The host names, public IP and LAN IP are as follows:
 
-- OSD nodes have a *sdb* partition of 10GB which is used for the cluster
-- The operating system is Debian 4.19.37-5+deb10u1 (2019-07-19) 
-
+|   Host name   | Public IP     | Private IP      | Role     |
+| ---- | ---- | ---- | ---- |
+|vmm101|51.75.15.149|10.2.2.127|MON, OSD|
+|vmm102|51.83.109.111|10.2.2.33|OSD|
+|vmm103|51.178.95.20|10.2.0.31|OSD|
+|vmm104|51.210.189.212|10.2.0.75|Client|
+|vmm105|51.210.186.20|10.2.0.171|Client|
 ## Setup
 ### Step 1. Prepare all nodes
 We are going to configure LAN and the host names and install all the needed packages. We are going to use the **debian** user for root access. 
