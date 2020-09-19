@@ -55,7 +55,10 @@ echo deb https://download.ceph.com/debian-octopus/ $(lsb_release -sc) main | sud
 apt-get update
 ./cephadm install cephadm ceph-common
 ```
+Use `scripts/deploy_monitor.sh` at `~/` to automate this step.
+
 #### Packages for OSDs
+
 For OSDs, you need docker, LVM2 and Ceph-common:
 ```bash
 apt-get update
@@ -70,7 +73,10 @@ chmod +x cephadm
 ./cephadm add-repo --release octopus
 ./cephadm install ceph-common
 ```
+Use `scripts/deploy_osd.sh` at `~/` to automate this step.
+
 ### Step 2. Create Monitor Node
+
 In the monitor node, execute:
 ```bash
 mkdir -p /etc/ceph
@@ -148,6 +154,6 @@ mount -t ceph vmm101:6789:/ /home/debian/cephfs -o name=vmmcephuser,secret=xxxxx
 ```
 For unmount, run `umount ./cephfs`.
 
-To automate these steps, execute the script `deploy_client.sh` at `~/`.
+To automate these steps, execute`scripts/deploy_client.sh` at `~/`.
 
 ### Step 8. Add new OSD node 
