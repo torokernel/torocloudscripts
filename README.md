@@ -1,6 +1,6 @@
 # Deploying a 3-node Ceph Cluster
 ## Introduction
-This tutorial explains how to set up a 3-nodes Ceph cluster. We also explain how to configure clients to access the Cephfs. The distributed fs is used by clients to share binaries and files among VMs. These VMs are Toro's guests. We uses the cloud provider OVH with nodes Debian 4.19.37-5+deb10u1 (2019-07-19). At the end of some sections, you will find link to an script that automate the step. 
+This tutorial explains how to set up a 3-nodes Ceph cluster. We also explain how to configure clients to access the Cephfs. The distributed fs is used by clients to share binaries and files among VMs. These VMs are Toro's guests. We uses the cloud provider OVH with nodes Debian 4.19.37-5+deb10u1 (2019-07-19). At the end of some sections, you will find a link to a script that automates the steps discussed.  You can find more information about this at [Deploying a new Ceph Cluster](https://docs.ceph.com/en/latest/cephadm/install/).
 
 ## Nodes
 
@@ -15,10 +15,10 @@ The cluster is organized as 1 monitor, 3 OSD nodes and 2 clients. Each OSD node 
 |vmm105|51.210.186.20|10.2.0.171|Client|
 ## Setup
 ### Step 1. Prepare all nodes
-We are going to configure LAN and the host names and install all the needed packages. We are going to use the **debian** user for root access. 
+We are going to configure LAN and the host names and install all the required packages. We are going to use the **debian** user for root access. 
 
 #### Configure LAN IP
-Set node private IP, netmask and gateway by editing */etc/network/interfaces* (eth1):
+On each node, set private LAN IP, netmask and gateway by editing */etc/network/interfaces* (eth1):
 
 ```bash
 iface eth1 inet static
@@ -31,11 +31,11 @@ ifup eth1
 #### Configure Host File 
 Configure hosts so each node is visible by using shortnames. Edit */etc/hosts* and add:
 ```bash
-10.2.2.127      vmm101.xmlrad.org       vmm101
-10.2.2.33       vmm102.xmlrad.org       vmm102
-10.2.0.31       vmm103.xmlrad.org       vmm103
-10.2.0.75       vmm104.xmlrad.org       vmm104
-10.2.0.171      vmm105.xmlrad.org       vmm105
+10.2.2.127      vmm101.xmlrad.local       vmm101
+10.2.2.33       vmm102.xmlrad.local       vmm102
+10.2.0.31       vmm103.xmlrad.local       vmm103
+10.2.0.75       vmm104.xmlrad.local       vmm104
+10.2.0.171      vmm105.xmlrad.local       vmm105
 ```
 #### Packages for Monitor
 For monitors node, you need docker, LVM2 and Ceph:
