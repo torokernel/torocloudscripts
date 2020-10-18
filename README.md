@@ -5,13 +5,13 @@ This tutorial explains how to set up a 3-nodes Ceph cluster. We also explain how
 
 The cluster contains 1 monitor, 3 OSD nodes and 2 clients. Each OSD node has a `sdb` partition of 10Gb which is part of the cluster. The host names, public IP and LAN IP are as follows:
 
-|   Host name   | Public IP     | Private IP      | Role     |
-| ---- | ---- | ---- | ---- |
-|vmm101|51.75.15.149|10.2.2.127|MON, OSD|
-|vmm102|51.83.109.111|10.2.2.33|OSD|
-|vmm103|51.178.95.20|10.2.0.31|OSD|
-|vmm104|51.210.189.212|10.2.0.75|Client|
-|vmm105|51.210.186.20|10.2.0.171|Client|
+|   Host name   | Private IP      | Role     |
+| ---- | ---- | ---- |
+|vmm101|10.2.2.127|MON, OSD|
+|vmm102|10.2.2.33|OSD|
+|vmm103|10.2.0.31|OSD|
+|vmm104|10.2.0.75|Client|
+|vmm105|10.2.0.171|Client|
 ## Setup
 ### Step 1. Prepare all nodes
 We are going to configure LAN and the host names and install all the required packages. We are going to use the **debian** user for root access. 
