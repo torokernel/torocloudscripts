@@ -139,5 +139,13 @@ mount -t ceph vmm101:6789:/ /home/debian/cephfs -o name=vmmcephuser,secret=xxxxx
 ```
 For unmount, run `umount ./cephfs`.
 To automate this step, execute `scripts/deploy_client.sh` at `~/`.
+
 ### Step 8. Add new OSD node 
 To add new OSD node, you have just to repeat the steps 1, then step 3 and step 4.
+
+### Step 9. Remove an OSD node
+To remove an OSD node, just execute this:
+
+```bash
+ceph orch host rm *<hostname>*
+```
